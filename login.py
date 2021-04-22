@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 import selenium.webdriver.support.expected_conditions as EC
 import selenium.webdriver.common.alert
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import *
 import pyautogui
 
 def getFromJSON(path, id):
@@ -45,16 +45,23 @@ def listaMaterias(name):
 
 
 def login(user, passw):
+    success = True;
     driver.get("https://aulavirtual.instituto.ort.edu.ar/login/index.php")
     driver.find_element_by_id("username").send_keys(user)
     driver.find_element_by_id("password").send_keys(passw)
     driver.find_element_by_id("loginbtn").click()
+    try:
+        if driver.find_element_by_id("loginerrormessage"): success = False
+    except Exception:
+        pass
+
+    return success
 
 
 def schedule():
     wd = today.weekday()
     t = today.time()
-    materias = getFromJSON('materias.json', 'materias')
+    materias = getFromJSON(matPath, 'materias')
     m = None
     i = 0
 
@@ -72,6 +79,7 @@ def schedule():
 
 
 def checkAsistencia():
+
     driver.switch_to.window(driver.window_handles[0])
     driver.find_element_by_partial_link_text("Asistencia").click()
     path = "//div[1]/div[4]/div[2]/div/section/div[1]/table[1]/tbody/tr"
@@ -119,24 +127,33 @@ def closeTabs():
 
 
 def main():
-    user = getFromJSON('credentials.json', 'user')
-    passw = getFromJSON('credentials.json', 'pass')
-    login(user, passw)
-
-    tab = driver.find_element_by_xpath('//*[@id="page-wrapper"]/nav/div/button')
-    if tab.get_attribute("aria-expanded") == "false": tab.click()
-
-    materia = schedule()
-    materiaW = listaMaterias(materia["name"])
-    materiaW.click()
-    openZoom(materia["course"])
-    checkAsistencia()
-    closeTabs()
+    user = getFromJSON(credPath, 'user')
+    passw = getFromJSON(credPath, 'pass')
     
+    if login(user, passw):
+        tab = driver.find_element_by_xpath('//*[@id="page-wrapper"]/nav/div/button')
+        if tab.get_attribute("aria-expanded") == "false": tab.click()
+        try:
+            materia = schedule()
+            # type error
+            materiaW = listaMaterias(materia["name"])
+            materiaW.click()
+            # nosuchelementexception
+            openZoom(materia["course"])
+            checkAsistencia()
+            closeTabs()
+        except TypeError as te:
+            print("La materia no existe o no corresponde ninguna al horario")
+        except NoSuchElementException as nse:
+            print("El nombre del curso es inválido")
+    else:
+        print("Usuario o contraseña incorrectos")
 
-
-driver = getChromedriver('chromedriver')
+            
+driver = getChromedriver('files/chromedriver')
 today = datetime.now()
+credPath = 'files/credentials.json'
+matPath = 'files/materias.json'
 
 if __name__ == "__main__": main()
 
