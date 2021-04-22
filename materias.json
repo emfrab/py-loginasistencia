@@ -1,0 +1,34 @@
+{
+"materias": [
+{
+    "name": "NT2-2021-1",
+    "day": 0,
+    "course": "asc-ya-21a",
+    "hour": "19:00/23:00"
+},
+{
+    "name": "TP2-2021-1",
+    "day": 1,
+    "course": "asc-ya-21a",
+    "hour": "19:00/23:00"
+},
+{
+    "name": "PR2-2021-1",
+    "day": 2,
+    "course": "asc-ya-21a",
+    "hour": "19:00/23:00"
+},
+{
+    "name": "BD2-2021-1",
+    "day": 3,
+    "course": "asc-ya-21a",
+    "hour": "19:00/20:40"
+},
+{
+    "name": "NT2-2021-1",
+    "day": 3,
+    "course": "asc-ya-21a",
+    "hour": "20:40/23:00"
+}
+]
+}
