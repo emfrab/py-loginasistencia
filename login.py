@@ -9,6 +9,7 @@ import selenium.webdriver.common.alert
 from selenium.common.exceptions import *
 import pyautogui
 
+
 def getFromJSON(path, id):
     with open(path) as f:
         data = json.load(f)
@@ -28,6 +29,8 @@ def getChromedriver(path):
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     driver = webdriver.Chrome(options=options, executable_path=path)
     return driver
+
+
 
 
 def listaMaterias(name):
@@ -79,7 +82,6 @@ def schedule():
 
 
 def checkAsistencia():
-
     driver.switch_to.window(driver.window_handles[0])
     driver.find_element_by_partial_link_text("Asistencia").click()
     path = "//div[1]/div[4]/div[2]/div/section/div[1]/table[1]/tbody/tr"
@@ -87,20 +89,12 @@ def checkAsistencia():
     tString = getDateFormatted()
     i = 1
 
-    while found == None:
-        pathAux = path + "[" + str(i) + "]"
-        try:
-            element = driver.find_element_by_xpath(pathAux + "/td[1]")
-        except Exception:
-            break
-        text = element.text
-        text = text.split(" ")[0]
-        if text == tString: 
-            found = element
-        else: i += 1
-    
-    if found != None:
-        path = pathAux + "/td[3]"
+    try:
+        driver.find_element_by_partial_link_text("Enviar asistencia").click()
+        driver.find_element_by_xpath('//div[1]/div[4]/div[2]/div/section/div[1]/form/fieldset/div/div/div[2]/label[1]/input').click()
+        driver.find_element_by_id("id_submitbutton").click()
+    except Exception as e:
+        print("No hay asistencia para enviar")
 
 
 def openZoom(course):
@@ -123,25 +117,30 @@ def closeTabs():
     for i in range(1, 3):
         driver.switch_to.window(driver.window_handles[1])
         driver.close()
-    driver.switch_to_window(driver.window_handles[0])
+    driver.switch_to.window(driver.window_handles[0])
 
 
 def main():
     user = getFromJSON(credPath, 'user')
     passw = getFromJSON(credPath, 'pass')
-    
+
+    print("Iniciando sesión...")    
     if login(user, passw):
         tab = driver.find_element_by_xpath('//*[@id="page-wrapper"]/nav/div/button')
         if tab.get_attribute("aria-expanded") == "false": tab.click()
         try:
             materia = schedule()
+            if materia != None: print("Logueando en " + materia["name"] + "...")
             # type error
             materiaW = listaMaterias(materia["name"])
             materiaW.click()
             # nosuchelementexception
             openZoom(materia["course"])
+            print("Confirmando asistencia...")
             checkAsistencia()
             closeTabs()
+            print("Terminado")
+            
         except TypeError as te:
             print("La materia no existe o no corresponde ninguna al horario")
         except NoSuchElementException as nse:
@@ -149,21 +148,14 @@ def main():
     else:
         print("Usuario o contraseña incorrectos")
 
-            
-driver = getChromedriver('files/chromedriver')
+        
+driver = getChromedriver(r'./files/chromedriver')
 today = datetime.now()
-credPath = 'files/credentials.json'
-matPath = 'files/materias.json'
+credPath = './files/credentials.json'
+matPath = './files/materias.json'
 
 if __name__ == "__main__": main()
 
-
-
-
-
-
-# print(user)
-# print(password)
 
 
 
